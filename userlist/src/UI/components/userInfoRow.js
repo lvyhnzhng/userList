@@ -51,6 +51,7 @@ const InfoRow = ({
       }}
     >
       <TextField
+        {...attri}
         error={errorMessages.length > 0}
         fullWidth
         size="small"

@@ -3,6 +3,15 @@ import axios from "axios";
 import { navToLastPage, setPageNumArr } from "./paginationSlice";
 
 //---------------------async thunk---------------
+const logginThunk = createAsyncThunk(
+  "userlist/loggin",
+  async ({ loginInfo, nav }) => {
+    const response = await axios.post("http://localhost:8088/login", loginInfo);
+    const loginUser = response.data;
+    return { loginUser, nav };
+  }
+);
+
 const getAllUsers = createAsyncThunk("userlist/getAllusers", async () => {
   const response = await axios.get("http://localhost:8088");
   // console.log(response);
@@ -43,7 +52,7 @@ const deleteUser = createAsyncThunk(
     return id; //this return is useless but to show that you can pass data here
   }
 );
-export { getAllUsers, updateEditedUser, deleteUser, addNewUser };
+export { getAllUsers, updateEditedUser, deleteUser, addNewUser, logginThunk };
 
 const userlistSlice = createSlice({
   name: "userlist",
@@ -53,9 +62,15 @@ const userlistSlice = createSlice({
     sortedCol: "",
     error: "",
     isPending: false,
+    isloggedin: false,
   },
   //initialState is S S S!!!
   reducers: {
+    logout(state, actions) {
+      const nav = actions.payload;
+      state.isloggedin = false;
+      nav("/login");
+    },
     searchData(state, actions) {
       if (actions.payload) {
         const searchStr = actions.payload;
@@ -134,6 +149,20 @@ const userlistSlice = createSlice({
       state.isPending = false;
       console.log(state.error.message);
     },
+    [logginThunk.pending]: (state, actions) => {
+      state.isPending = false;
+    },
+    [logginThunk.fulfilled]: (state, actions) => {
+      const { loginUser, nav } = actions.payload;
+      console.log(loginUser, nav);
+      if (loginUser) {
+        state.isloggedin = true;
+        console.log(state.isloggedin);
+        nav("/list");
+      } else {
+        state.isloggedin = false;
+      }
+    },
     [updateEditedUser.pending]: (state, actions) => {
       console.log("edit user is pending");
       state.isPending = true;
@@ -183,4 +212,5 @@ const userlistSlice = createSlice({
 });
 export default userlistSlice.reducer;
 //to export reducer, use "export default ..." syntax, coz we don't know reducer's name
-export const { searchData, sorting, backToDefault } = userlistSlice.actions;
+export const { logout, searchData, sorting, backToDefault } =
+  userlistSlice.actions;

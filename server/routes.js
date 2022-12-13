@@ -1,6 +1,6 @@
 const express = require("express");
 const { default: mongoose } = require("mongoose");
-const { findById } = require("./schema");
+const { findById, findOne } = require("./schema");
 const User = require("./schema");
 
 const router = express.Router();
@@ -8,6 +8,21 @@ router.get("/", async (req, res, next) => {
   const allUsers = await User.find();
   //   console.log(allUsers);
   res.send(allUsers);
+});
+router.post("/login", async (req, res, next) => {
+  console.log(req.body);
+  const { firstname, lastname, password } = req.body;
+  try {
+    const findUser = await User.findOne({
+      firstname: firstname,
+      lastname: lastname,
+      password: password,
+    });
+    console.log(findUser);
+    res.send(findUser);
+  } catch (err) {
+    console.log(err.message);
+  }
 });
 
 router.post("/", async (req, res, next) => {

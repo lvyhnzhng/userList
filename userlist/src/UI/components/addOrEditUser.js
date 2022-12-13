@@ -21,8 +21,8 @@ const attributes = [
   { name: "lastname", title: "Last Name" },
   { name: "sex", title: "Sex" },
   { name: "age", title: "Age" },
-  { name: "password", title: "Password" },
-  { name: "confirmPassword", title: "Confirm Password" },
+  { name: "password", title: "Password", type: "password" },
+  { name: "confirmPassword", title: "Confirm Password", type: "password" },
 ];
 
 const AddEditUser = () => {
