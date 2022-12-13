@@ -4,12 +4,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { searchData } from "../../features/userlistSlice";
 import { TextField, Box } from "@mui/material";
 
-const SearchingBar = ({ initializeCurPage }) => {
+const SearchingBar = (props) => {
   const [search, setSearch] = useState("");
   const dispatch = useDispatch();
 
   const handleSearch = (e) => {
-    initializeCurPage();
     setSearch(e.target.value);
     const searchStr = e.target.value;
     dispatch(searchData(searchStr));

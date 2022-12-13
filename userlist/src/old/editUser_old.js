@@ -1,10 +1,11 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateEditedUser } from "../../features/userlistSlice";
-import InfoRow from "./userInfoRow";
+import { updateEditedUser } from "../features/userlistSlice";
+import InfoRow from "../UI/components/userInfoRow";
+import ErrorMessages from "../UI/components/userInfoError";
 import { useParams, useNavigate } from "react-router-dom";
-import { checkValidation, setIsValid } from "../../features/validationSlice";
+import { checkValidation, setIsValid } from "./validationSlice";
 import {
   Box,
   TextField,
@@ -39,8 +40,6 @@ const EditPage = (props) => {
     _id: _id,
   });
   const dispatch = useDispatch();
-  const errorMessages = useSelector((state) => state.validation.errorMessages);
-  const isAllValidate = useSelector((state) => state.validation.isValid);
 
   const handleChange = (name, tex) => {
     setUserInfo({ ...userInfo, [name]: tex });
@@ -73,14 +72,15 @@ const EditPage = (props) => {
             return (
               <li key={name}>
                 <InfoRow
-                  {...attri}
-                  name={name}
-                  tex={userInfo[name]}
-                  value={userInfo[name]}
-                  onChange={handleChange}
-                  password={userInfo.password}
-                  errorMessages={errorMessages[name]}
+                // {...attri}
+                // name={name}
+                // tex={userInfo[name]}
+                // value={userInfo[name]}
+                // onChange={handleChange}
+                // password={userInfo.password}
+                // errorMessages={errorMessages[name]}
                 />
+                {/* <ErrorMessages errorMessages={errorMessages[name]} /> */}
               </li>
             );
           })}
@@ -96,10 +96,10 @@ const EditPage = (props) => {
           <Button
             variant="contained"
             onClick={handleUploadUser}
-            disabled={
-              Object.values(isAllValidate).filter((isValid) => isValid !== true)
-                .length > 0 && userInfo.confirmPassword !== userInfo.password
-            }
+            //   disabled={
+            //     Object.values(isAllValidate).filter((isValid) => isValid !== true)
+            //       .length > 0 && userInfo.confirmPassword !== userInfo.password
+            //   }
           >
             SUPMIT
           </Button>

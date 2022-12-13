@@ -11,7 +11,6 @@ router.get("/", async (req, res, next) => {
 });
 
 router.post("/", async (req, res, next) => {
-  // console.log(req.body.newUserInfo);
   const { firstname, lastname, sex, age, password } = req.body.newUserInfo;
   try {
     const newUser = await User.create({
@@ -34,8 +33,8 @@ router.get("/:id", async (req, res) => {
   res.send(userToEdit); //return to UI
 });
 router.put("/:id", async (req, res) => {
-  const { firstname, lastname, sex, age, password } = req.body.userInfo;
-  // console.log(req.body.userInfo);
+  const { firstname, lastname, sex, age, password } = req.body; //.userInfo;
+  console.log(req.body);
   const id = mongoose.Types.ObjectId(req.params.id);
   try {
     const userToEdit = await User.findByIdAndUpdate(id, {

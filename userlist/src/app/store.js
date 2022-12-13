@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userlistReducer from "../features/userlistSlice";
-import validationReducer from "../features/validationSlice";
+import paginationReducer from "../features/paginationSlice";
 
 export default configureStore({
-  reducer: { userlist: userlistReducer, validation: validationReducer },
+  reducer: { userlist: userlistReducer, pagination: paginationReducer },
 });

@@ -1,6 +1,11 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import {
+  setPageNumArr,
+  changeItemsPerPage,
+  setCurPageAndIdx,
+} from "../../features/paginationSlice";
 import {
   TableFooter,
   TablePagination,
@@ -15,82 +20,107 @@ import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 
-const Pagination = ({ curPage, onCurPage, itemsPerPage }) => {
-  const usersToShow = useSelector((state) => state.userlist.usersToShow);
-  const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(usersToShow.length / itemsPerPage); i++) {
-    pageNumbers.push(i);
-  }
-  const pageIdxUpdate = () => {
-    let idx = 0;
-    pageNumbers.forEach((num, i) => {
-      if (num === curPage) {
-        console.log(`current page=${+curPage}, current pageNum idx = ${i}`);
-        idx = i;
-      }
-    });
-    return idx;
-  };
+const Pagination = (props) => {
+  const curPage = useSelector((state) => state.pagination.curPage);
+  const curPageIdx = useSelector((state) => state.pagination.curPageIdx);
+  const pageNumbers = useSelector((state) => state.pagination.pageNumbers);
+
   const setCurPage = (e) => {
-    const name = e.target.getAttribute("name");
-    console.log(name);
-    if (name === "next") {
-      let idx = pageIdxUpdate();
-      //   console.log(`curt pageNum idx ${idx}`);
-      if (idx < Math.ceil(usersToShow.length / itemsPerPage)) {
-        idx++;
-        onCurPage(pageNumbers[idx]);
-      }
-    } else if (name === "previous") {
-      let idx = pageIdxUpdate();
-      if (idx > 0) {
-        idx--;
-        onCurPage(pageNumbers[idx]);
-      }
-    } else if (name === "last") {
-      onCurPage(pageNumbers[pageNumbers.length - 1]);
-    } else if (name === "first") {
-      onCurPage(pageNumbers[0]);
-    } else {
-      onCurPage(+e.target.getAttribute("name"));
+    const id = e.target.id;
+    switch (id) {
+      case "first":
+        props.onPageChange(pageNumbers[0]);
+        break;
+      case "previous":
+        props.onPageChange(pageNumbers[curPageIdx - 1]);
+        break;
+      case "next":
+        props.onPageChange(pageNumbers[curPageIdx + 1]);
+        break;
+      case "last":
+        props.onPageChange(pageNumbers[pageNumbers.length]);
+        break;
+      default:
+        const pageToSet = +e.target.getAttribute("name");
+        props.onPageChange(pageToSet);
+        break;
     }
   };
   return (
     <Box sx={{ flexShrink: 0, ml: 1.5 }}>
-      <IconButton onClick={setCurPage} name="first" disabled={curPage === 1}>
-        <FirstPageIcon name="first" />
+      <IconButton
+        onClick={setCurPage}
+        id="first"
+        disabled={curPage === pageNumbers[0]}
+      >
+        <FirstPageIcon id="first" />
       </IconButton>
-      <IconButton onClick={setCurPage} name="previous" disabled={curPage === 1}>
-        <KeyboardArrowLeft name="previous" />
+      <IconButton
+        onClick={setCurPage}
+        id="previous"
+        disabled={curPage === pageNumbers[0]}
+      >
+        <KeyboardArrowLeft id="previous" />
       </IconButton>
-      {pageNumbers.map((curPage) => (
-        <IconButton onClick={setCurPage} key={curPage} name={curPage}>
-          {curPage}
+      {pageNumbers.map((page) => (
+        <IconButton
+          key={page}
+          id="number"
+          name={page}
+          onClick={setCurPage}
+          disabled={curPage === page}
+        >
+          {page}
         </IconButton>
       ))}
       <IconButton
         onClick={setCurPage}
-        name="next"
+        id="next"
         disabled={curPage === pageNumbers[pageNumbers.length - 1]}
       >
-        <KeyboardArrowRight name="next" />
+        <KeyboardArrowRight id="next" />
       </IconButton>
       <IconButton
         onClick={setCurPage}
-        name="last"
+        id="last"
         disabled={curPage === pageNumbers[pageNumbers.length - 1]}
       >
-        <LastPageIcon name="last" />
+        <LastPageIcon id="last" />
       </IconButton>
     </Box>
   );
 };
 
 const PaginationFooter = (props) => {
+  const dispatch = useDispatch();
   const usersToShow = useSelector((state) => state.userlist.usersToShow);
+  const itemsPerPage = useSelector((state) => state.pagination.itemsPerPage);
+  const pageNumbers = useSelector((state) => state.pagination.pageNumbers);
+  const curPageIdx = useSelector((state) => state.pagination.curPageIdx);
+  const curPage = useSelector((state) => state.pagination.curPage);
+
+  //-----------keep user rows displaying in current page valid-----------
+  useEffect(() => {
+    const totalUsers = usersToShow.length;
+    dispatch(setPageNumArr(totalUsers));
+  }, [usersToShow]);
+  useEffect(() => {
+    if (curPageIdx > pageNumbers.length - 1 && pageNumbers.length >= 1) {
+      dispatch(setCurPageAndIdx(pageNumbers[pageNumbers.length - 1]));
+    }
+  }, [pageNumbers]);
+  if (curPageIdx < 0) {
+    dispatch(setCurPageAndIdx(1));
+  }
+
   const setOnRowsPerPageChange = (e) => {
-    props.onItemsPerPage(parseInt(e.target.value));
+    dispatch(changeItemsPerPage(e.target.value));
   };
+  const handlePageChange = (num) => {
+    dispatch(setCurPageAndIdx(num));
+    console.log("handlePageChange");
+  };
+  console.log(curPageIdx, curPage);
   return (
     <TableFooter>
       <TableRow>
@@ -101,12 +131,12 @@ const PaginationFooter = (props) => {
         </TableCell>
         <TablePagination
           rowsPerPageOptions={[10, 15, 20]}
-          rowsPerPage={props.itemsPerPage}
+          rowsPerPage={itemsPerPage}
           onRowsPerPageChange={setOnRowsPerPageChange}
-          page={props.curPage - 1}
-          onPageChange={props.onCurPage}
+          page={curPageIdx}
+          onPageChange={handlePageChange}
           count={usersToShow.length}
-          ActionsComponent={() => Pagination(props)}
+          ActionsComponent={Pagination}
         ></TablePagination>
       </TableRow>
     </TableFooter>

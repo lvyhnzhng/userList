@@ -1,5 +1,49 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { navToLastPage, setPageNumArr } from "./paginationSlice";
+
+//---------------------async thunk---------------
+const getAllUsers = createAsyncThunk("userlist/getAllusers", async () => {
+  const response = await axios.get("http://localhost:8088");
+  // console.log(response);
+  return response.data;
+});
+const updateEditedUser = createAsyncThunk(
+  "userlist/updateEditUser",
+  async ({ newUserInfo, nav }) => {
+    console.log(newUserInfo);
+    const { _id } = newUserInfo;
+    await axios.put(`http://localhost:8088/${_id}`, newUserInfo);
+    return nav; //the only way to useNavigate hook in redux(not a react component)
+  }
+);
+const addNewUser = createAsyncThunk(
+  "userlist/addNewUser",
+  async ({ newUserInfo, nav }, { dispatch, getState }) => {
+    await axios
+      .post(`http://localhost:8088`, { newUserInfo })
+      .then(() => dispatch(getAllUsers()))
+      .then(() => {
+        const totalUsers = getState().userlist.usersToShow.length;
+        //getState can get state from other slice!
+        dispatch(setPageNumArr(totalUsers));
+      })
+      .then(() => {
+        dispatch(navToLastPage());
+      });
+
+    return nav;
+  }
+);
+const deleteUser = createAsyncThunk(
+  "userlist/deleteUser",
+  async (id, { dispatch }) => {
+    await axios.delete(`http://localhost:8088/${id}`);
+    await dispatch(getAllUsers()); //call other actions or async thunk
+    return id; //this return is useless but to show that you can pass data here
+  }
+);
+export { getAllUsers, updateEditedUser, deleteUser, addNewUser };
 
 const userlistSlice = createSlice({
   name: "userlist",
@@ -74,98 +118,69 @@ const userlistSlice = createSlice({
       state.sortedCol = "";
     },
   },
-  extraReducers(builder) {
-    builder.addCase(getAllUsers.pending, (state, actions) => {
+  extraReducers: {
+    [getAllUsers.pending]: (state, actions) => {
       state.isPending = true;
       console.log("get all users is pending");
-    });
-    builder.addCase(getAllUsers.fulfilled, (state, actions) => {
+    },
+    [getAllUsers.fulfilled]: (state, actions) => {
       state.users = [...actions.payload];
       state.usersToShow = [...actions.payload];
       state.isPending = false;
       state.error = "";
-    });
-    builder.addCase(getAllUsers.rejected, (state, actions) => {
+    },
+    [getAllUsers.rejected]: (state, actions) => {
       state.error = actions.error.message;
       state.isPending = false;
       console.log(state.error.message);
-    });
-    builder.addCase(updateEditedUser.pending, (state, actions) => {
+    },
+    [updateEditedUser.pending]: (state, actions) => {
       console.log("edit user is pending");
       state.isPending = true;
-    });
-    builder.addCase(updateEditedUser.fulfilled, (state, actions) => {
+    },
+    [updateEditedUser.fulfilled]: (state, actions) => {
+      const nav = actions.payload;
       console.log("edit user fulfilled");
       state.isPending = false;
       state.error = "";
-    });
-    builder.addCase(updateEditedUser.rejected, (state, actions) => {
+      nav("/list");
+    },
+    [updateEditedUser.rejected]: (state, actions) => {
       state.error = actions.error.message;
       state.isPending = false;
-    });
-    builder.addCase(deleteUser.pending, (state, actions) => {
+    },
+    [deleteUser.pending]: (state, actions) => {
       console.log("delete user is pending");
       state.isPending = true;
-    });
-    builder.addCase(deleteUser.fulfilled, (state, actions) => {
+    },
+    [deleteUser.fulfilled]: (state, actions) => {
       state.isPending = false;
       console.log("delete user fulfilled");
       state.error = "";
-    });
-    builder.addCase(deleteUser.rejected, (state, actions) => {
+    },
+    [deleteUser.rejected]: (state, actions) => {
       state.isPending = false;
       state.error = actions.error.message;
-    });
-    builder.addCase(addNewUser.pending, (state, actions) => {
+    },
+    [addNewUser.pending]: (state, actions) => {
       state.isPending = true;
       console.log("add new user is pending");
-    });
-    builder.addCase(addNewUser.fulfilled, (state, actions) => {
+    },
+    [addNewUser.fulfilled]: (state, actions) => {
+      const nav = actions.payload;
+      console.log(actions.payload);
       state.isPending = false;
       console.log("add new user fulfilled");
       state.error = "";
-    });
-    builder.addCase(addNewUser.rejected, (state, actions) => {
+      nav("/list");
+    },
+    [addNewUser.rejected]: (state, actions) => {
       console.log(actions.error.message);
       state.isPending = false;
       state.error = actions.error.message;
-    });
+    },
   },
 });
-
 export default userlistSlice.reducer;
 //to export reducer, use "export default ..." syntax, coz we don't know reducer's name
 export const { searchData, sorting, backToDefault } = userlistSlice.actions;
-
-//---------------------async thunk---------------
-const getAllUsers = createAsyncThunk("userlist/getAllusers", async () => {
-  const response = await axios.get("http://localhost:8088");
-  // console.log(response);
-  return response.data;
-});
-const updateEditedUser = createAsyncThunk(
-  "userlist/updateEditUser",
-  async (userInfo) => {
-    const { firstname, lastname, sex, age, password, _id } = userInfo;
-    const response = await axios.put(`http://localhost:8088/${_id}`, {
-      userInfo,
-    });
-    return response.data;
-  }
-);
-const addNewUser = createAsyncThunk(
-  "userlist/addNewUser",
-  async (newUserInfo) => {
-    await axios.post(`http://localhost:8088`, { newUserInfo });
-    console.log(newUserInfo);
-  }
-);
-const deleteUser = createAsyncThunk(
-  "userlist/deleteUser",
-  async (id, { dispatch }) => {
-    await axios.delete(`http://localhost:8088/${id}`);
-    await dispatch(getAllUsers());
-    return id;
-  }
-);
-export { getAllUsers, updateEditedUser, deleteUser, addNewUser };

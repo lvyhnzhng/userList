@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { checkValidation, setIsValid } from "../../features/validationSlice";
 import {
   Box,
   TextField,
@@ -13,36 +12,35 @@ const InfoRow = ({
   name,
   tex,
   onChange,
-  password,
+  confirmPassword,
   errorMessages,
   title,
+  onValidate,
   ...attri
 }) => {
-  const [hasBlur, setHasBlur] = useState(false);
-  const dispatch = useDispatch();
+  let hasFilled = tex.toString() !== "";
+  const [isActive, setIsActive] = useState(hasFilled);
+  console.log(name, isActive);
   const setChange = (e) => {
     const updateTex = e.target.value;
     onChange(name, updateTex);
-    if (name === "confirmPassword") {
-      dispatch(checkValidation({ name, updateTex, password }));
-      dispatch(setIsValid(name));
-    } else {
-      if (hasBlur) {
-        dispatch(checkValidation({ name, updateTex }));
-        dispatch(setIsValid(name));
+    if (isActive) {
+      onValidate(name, updateTex);
+      if (name === "password" && confirmPassword !== "") {
+        onValidate("confirmPassword", confirmPassword, updateTex);
       }
     }
   };
-
   const handleIsBlur = (e) => {
     const updateTex = e.target.value;
-    setHasBlur(true);
+    setIsActive(true);
+    if (name !== "confirmPassword") {
+      onValidate(name, updateTex);
+    }
+  };
+  const handleFocus = (e) => {
     if (name === "confirmPassword") {
-      dispatch(checkValidation({ name, updateTex, password }));
-      dispatch(setIsValid(name));
-    } else {
-      dispatch(checkValidation({ name, updateTex }));
-      dispatch(setIsValid(name));
+      setIsActive(true);
     }
   };
   return (
@@ -59,14 +57,15 @@ const InfoRow = ({
         margin="normal"
         value={tex}
         label={title}
+        onFocus={handleFocus}
         onBlur={handleIsBlur}
         onChange={setChange}
       ></TextField>
-      {errorMessages.map((error) => (
+      {/* {errorMessages.map((error) => (
         <FormHelperText style={{ color: "red" }} key={error}>
           {error}
         </FormHelperText>
-      ))}
+      ))} */}
     </Box>
   );
 };
