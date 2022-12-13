@@ -8,12 +8,8 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Tooltip,
-  IconButton,
-  Toolbar,
   Typography,
 } from "@mui/material";
-import UndoIcon from "@mui/icons-material/Undo";
 
 const headCells = [
   { name: "firstname", lable: "First Name", sortable: true },
@@ -35,10 +31,10 @@ const HeadCol = (props) => {
   const sortedCol = useSelector((state) => state.userlist.sortedCol);
   const dispatch = useDispatch();
   const handleSort = (name) => {
-    setColIsSorted(true);
+    setColIsSorted(true); //local hook for locally displays(arrow)
     const dirs = ["desc", "asc"];
     const sortMethod = dirs.filter((dir) => dir !== direction)[0];
-    setDirection(sortMethod);
+    setDirection(sortMethod); //local hook for locally displays(arrow)
     dispatch(sorting({ name, sortMethod }));
   };
   const { lable, sortable, name, ...atrri } = props.head;
@@ -57,6 +53,10 @@ const HeadCol = (props) => {
 };
 
 const UserList = ({ usersToShow }) => {
+  const isPending = useSelector((state) => state.userlist.isPending);
+  if (isPending) {
+    return <Typography variant="h5">loading...</Typography>;
+  }
   return (
     <>
       <TableHead>

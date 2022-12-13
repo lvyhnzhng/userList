@@ -149,10 +149,10 @@ const userlistSlice = createSlice({
       state.error = actions.error.message;
       state.isPending = false;
     },
-    [deleteUser.pending]: (state, actions) => {
-      console.log("delete user is pending");
-      state.isPending = true;
-    },
+    // [deleteUser.pending]: (state, actions) => {
+    //   console.log("delete user is pending");
+    //   state.isPending = true;
+    // },
     [deleteUser.fulfilled]: (state, actions) => {
       state.isPending = false;
       console.log("delete user fulfilled");
